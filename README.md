@@ -136,9 +136,9 @@ Kr210 has wrist center and we can analytical approach. we kinematically decouple
 
 The important part is the meaning of the `req.pose.position` and `req.pose.orientation`. 
 * `req.pose.postion` presents the position vector of EE in terms of base frame.
-    * `0r_ee = 0_[req.pose.position_vector]`
+    * `0r_ee = [req.pose.position.x, req.pose.position.y, req.pose.position.z].T`
 * `req.pose.orientation` presents the orientation vector of EE in terms of base frame.
-    * `R0_rviz = R_[req.pose.orientation_rpy]`
+    * `R0_rviz = R_yaw * R_pitch * R_roll`
 
 The subtle problem of `sympy` is that the result of `subs()` and `evalf()` can be different. `subs()` seems to postpone `pi` until it can. So `subs()` gave more precise result.
 
