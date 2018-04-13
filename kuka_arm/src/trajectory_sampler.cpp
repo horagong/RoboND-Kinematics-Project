@@ -30,6 +30,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
   // Get demo param
   bool demo;
   ros::param::get("trajectory_sampler/demo", demo);
+	ROS_WARN("trajectory_sampler/demo(%d): 1 - use moveit for IK, 0 - use IK_server for IK", demo);
 
   // set RRT as the planner and set allowed planning time
   move_group.setPlannerId("RRTkConfigDefault");
@@ -177,7 +178,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     // define plan object which will hold the planned trajectory
     moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
-    bool success = move_group.plan(my_plan);
+    bool success = move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS;
     ROS_INFO("Visualizing plan to target: %s",
              success ? "SUCCEEDED" : "FAILED");
 
@@ -187,7 +188,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
                              rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
     visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
     visual_tools.trigger();
-    visual_tools.prompt("next step");
+		visual_tools.prompt("next step");
 
     /*
      * Convert plan to a set of eef poses for IK calculation
@@ -221,7 +222,8 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
                                rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
       visual_tools.trigger();
       // command the robot to execute the created plan
-      success = move_group.execute(my_plan);
+			//XXX
+      success = static_cast<bool>(move_group.execute(my_plan));
       ROS_INFO("Moving to pick location: %s",
                success ? "SUCCEEDED" : "FAILED");
     }
@@ -288,7 +290,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         }
 
         move_group.setJointValueTarget(robot_joint_positions);
-        bool worked = move_group.move();
+        bool worked = move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS;
         ROS_INFO("Robot actuation: %s", worked ? "SUCCEEDED" : "FAILED");
       }
     }
@@ -297,7 +299,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     visual_tools.publishText(text_pose, "Reached target location",
                              rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
     visual_tools.trigger();
-    visual_tools.prompt("next step");
+		visual_tools.prompt("next step");
 
     /*
      * Approach the target
@@ -310,11 +312,12 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
 
     move_group.setStartStateToCurrentState();
     move_group.setPoseTarget(target_reach);
-    success = move_group.move();
+		//XXX
+    success = static_cast<bool>(move_group.move());
     ROS_INFO("Target reach: %s",
              success ? "SUCCEEDED" : "FAILED");
 
-    visual_tools.prompt("next step");
+		visual_tools.prompt("next step");
 
     /*
      * Grasp the target
@@ -324,7 +327,8 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
                              rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
     visual_tools.trigger();
     CloseGripper();
-    visual_tools.prompt("next step");
+    ros::Duration(2.0).sleep();
+		visual_tools.prompt("next step");
 
     /*
      * Retract the gripper
@@ -336,11 +340,12 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     visual_tools.trigger();
     move_group.setStartStateToCurrentState();
     move_group.setPoseTarget(target_pose);
-    success = move_group.move();
+		//XXX
+    success = static_cast<bool>(move_group.move());
     ROS_INFO("Target retrieval: %s",
              success ? "SUCCEEDED" : "FAILED");
 
-    visual_tools.prompt("next step");
+		visual_tools.prompt("next step");
 
     /*
      * Plan to bin location for drop-off
@@ -348,7 +353,8 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     move_group.setStartStateToCurrentState();
     move_group.setPoseTarget(bin_pose);
 
-    success = move_group.plan(my_plan);
+		//XXX
+    success = static_cast<bool>(move_group.plan(my_plan));
     ROS_INFO("Visualizing plan to drop location: %s",
              success ? "SUCCEEDED" : "FAILED");
 
@@ -358,7 +364,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
                              rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
     visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
     visual_tools.trigger();
-    visual_tools.prompt("next step");
+		visual_tools.prompt("next step");
 
     /*
      * Execute the plan based on demo flag
@@ -372,7 +378,8 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
                                rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
       visual_tools.trigger();
       // command the robot to execute the created plan
-      success = move_group.execute(my_plan);
+			//XXX
+      success = static_cast<bool>(move_group.execute(my_plan));
       ROS_INFO("Moving to drop location: %s",
                success ? "SUCCEEDED" : "FAILED");
     }
@@ -449,7 +456,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         }
 
         move_group.setJointValueTarget(robot_joint_positions);
-        bool worked = move_group.move();
+        bool worked = move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS;
         ROS_INFO("Robot actuation: %s", worked ? "SUCCEEDED" : "FAILED");
       }
     }
@@ -461,7 +468,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     visual_tools.publishText(text_pose, "Reached drop-off location",
                              rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
     visual_tools.trigger();
-    visual_tools.prompt("next step");
+		visual_tools.prompt("next step");
 
     // Open the gripper and release the object
     // Display current state
@@ -478,7 +485,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     visual_tools.publishText(text_pose, "  End of Pick-Place cycle\nPress Next to begin a new cycle",
                              rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
     visual_tools.trigger();
-    visual_tools.prompt("next step");
+		visual_tools.prompt("next step");
 
     // Move robot back to idle pose
     robot_current_state = move_group.getCurrentState();
@@ -494,7 +501,8 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     }
 
     move_group.setJointValueTarget(robot_joint_positions);
-    success = move_group.move();
+		//XXX
+    success = static_cast<bool>(move_group.move());
     ROS_INFO("Robot motion to Idle state: %s", success ? "SUCCEEDED" : "FAILED");
 
     // Spawn another target
@@ -540,7 +548,7 @@ bool TrajectorySampler::OperateGripper(const bool &close_gripper)
   eef_group.setJointValueTarget(gripper_joint_positions);
   ros::Duration(1.5).sleep();
 
-  bool success = eef_group.move();
+  bool success = eef_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS;
   return success;
 }
 
@@ -584,6 +592,9 @@ bool TrajectorySampler::SetupCollisionObject(const std::string &object_id,
   collision_object.meshes.push_back(object_mesh);
   collision_object.mesh_poses.push_back(collision_object.mesh_poses[0]);
   collision_object.operation = collision_object.ADD;
+
+	//XXX
+	return true;
 }
 
 
