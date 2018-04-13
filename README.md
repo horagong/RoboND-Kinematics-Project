@@ -112,7 +112,7 @@ Kr210 has wrist center and we can analytical approach. we kinematically decouple
     * `0r_wc = 0r_ee - d * R0_ee * ee_[0,0,1].T`
         * `= 0r_ee - d * R0_ee[:,2]`
         * `0r_ee` is the position of EE expressed in the base frame is given by EE pose.position.
-        * `R0_rviz_rpy` is the relative orientaion from base frame and given by EE pose.orientation. R0_rviz_rpy = R_z * R_y * R_x
+        * `R0_rviz_rpy` is the relative orientaion of EE from base frame and given by EE pose.orientation. R0_rviz_rpy = R_z * R_y * R_x
         * `R0_rviz = R0_ee * Ree_rviz_corr = R0_rviz_rpy`. 
         * So `R0_ee = R0_rviz_rpy * Ree_rviz_corr.transpose()`
     * find theta1,2,3 before WC joint by comparing each term of both sides.
@@ -134,7 +134,11 @@ Kr210 has wrist center and we can analytical approach. we kinematically decouple
 
 #### 1. Fill in the `IK_server.py` file with properly commented python code for calculating Inverse Kinematics based on previously performed Kinematic Analysis. Your code must guide the robot to successfully complete 8/10 pick and place cycles. Briefly discuss the code you implemented and your results. 
 
-The important part is the meaning of the `req.pose.position` and `req.pose.orientation`. I could interpret it as `0r_ee` and `R0_rviz` respectively.
+The important part is the meaning of the `req.pose.position` and `req.pose.orientation`. 
+* `req.pose.postion` presents the position vector of EE in terms of base frame.
+    * `0r_ee = 0_[req.pose.position_vector]`
+* `req.pose.orientation` presents the orientation vector of EE in terms of rviz frame.
+    * `0r_ee = R0_rviz * rviz_[req.pose.orientation_vector]`
 
 The subtle problem of `sympy` is that the result of `subs()` and `evalf()` can be different. `subs()` seems to postpone `pi` until it can. So `subs()` gave more precise result.
 
