@@ -84,46 +84,46 @@ TF = Matrix([[           cos(q),           -sin(q),           0,             a],
 
 # Individual transformation matrices about each joint.
 T0_1 = Matrix([
-[cos(q1), -sin(q1), 0.0,  0.0],
+[cos(q1), -sin(q1),   0,    0],
 [sin(q1),  cos(q1),   0,    0],
 [      0,        0,   1, 0.75],
-[    0.0,      0.0, 0.0,  1.0]]))
+[      0,        0,   0,    1]]))
 
 T1_2 = Matrix([
-[sin(q2),  cos(q2), 0.0, 0.35],
-[               0,        0,   1,  0.0],
+[sin(q2),  cos(q2),   0, 0.35],
+[               0,        0,   1,    0],
 [         cos(q2), -sin(q2),   0,    0],
-[             0.0,      0.0, 0.0,  1.0]]))
+[               0,        0,   0,    1]]))
 
 T2_3 = Matrix([
-[cos(q3), -sin(q3), 0.0, 1.25],
+[cos(q3), -sin(q3),   0, 1.25],
 [sin(q3),  cos(q3),   0,    0],
-[      0,        0,   1,  0.0],
-[    0.0,      0.0, 0.0,  1.0]]))
+[      0,        0,   1,    0],
+[      0,        0,   0,    1]]))
 
 T3_4 = Matrix([
 [ cos(q4), -sin(q4), 0.0, -0.054],
 [       0,        0,   1,    1.5],
 [-sin(q4), -cos(q4),   0,      0],
-[     0.0,      0.0, 0.0,    1.0]]))
+[       0,        0,   0,      1]]))
 
 T4_5 = Matrix([
-[cos(q5), -sin(q5), 0.0, 0.0],
+[cos(q5), -sin(q5),   0,   0],
 [      0,        0,  -1,   0],
 [sin(q5),  cos(q5),   0,   0],
-[    0.0,      0.0, 0.0, 1.0]]))
+[      0,        0,   0,   1]]))
 
 T5_6 = Matrix([
-[ cos(q6), -sin(q6), 0.0, 0.0],
-[       0,        0,   1, 0.0],
+[ cos(q6), -sin(q6),   0,   0],
+[       0,        0,   1,   0],
 [-sin(q6), -cos(q6),   0,   0],
-[     0.0,      0.0, 0.0, 1.0]]))
+[       0,        0,   0,   1]]))
 
 T6_ee = Matrix([
-[  1,   0, 0.0,   0.0],
+[  1,   0,   0,     0],
 [  0,   1,   0,     0],
 [  0,   0,   1, 0.303],
-[0.0, 0.0, 0.0,   1.0]]))
+[  0,   0,   0,     1]]))
 
 T0_ee = T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_ee
 
@@ -139,7 +139,7 @@ T0_rviz = Matrix([
 The URDF file is using the different local frame at the gripper. So multiply another transform for it.
 ![alt text][image4]
 ```
-Ree_rviz_corr = R_z.subs(y, pi) * R_y.subs(p, -pi/2.)
+Ree_rviz_corr = R_z.subs(y, pi) * R_y.subs(p, -pi/2)
 R0_rviz = R0_ee * Ree_rviz_corr
 R0_ee = R0_rviz * Ree_rviz_corr.transpose()
 ```

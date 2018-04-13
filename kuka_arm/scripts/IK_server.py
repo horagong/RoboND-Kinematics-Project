@@ -21,10 +21,8 @@ from sympy import *
 
 
 def handle_calculate_IK(req):
-    """
     rospy.loginfo("Received %s eef-poses from the plan" % len(req.poses))
-    """
-    if False:#len(req.poses) < 1:
+    if len(req.poses) < 1:
         print "No valid poses received"
         return -1
     else:
@@ -37,20 +35,20 @@ def handle_calculate_IK(req):
         alpha0,alpha1,alpha2,alpha3,alpha4,alpha5,alpha6 = symbols('alpha0:7')# twist angle
 
         # Create Modified DH parameters
-        dh = {alpha0:     0, a0:      0, d1:     0.75,  q1:         q1,
-             alpha1: -pi/2, a1:   0.35, d2:       0,  q2:   q2-pi/2,
-             alpha2:     0, a2:   1.25, d3:       0,  q3:         q3,
-             alpha3: -pi/2, a3: -0.054, d4:      1.5,  q4:         q4,
-             alpha4:  pi/2, a4:     0, d5:       0,  q5:         q5,
-             alpha5: -pi/2, a5:     0, d6:       0,  q6:         q6,
-             alpha6:     0, a6:     0, d7:    0.303,  q7:         0}
+        dh = {alpha0:     0, a0:      0, d1:     0.75,   q1:         q1,
+              alpha1: -pi/2, a1:   0.35, d2:        0,   q2:    q2-pi/2,
+              alpha2:     0, a2:   1.25, d3:        0,   q3:         q3,
+              alpha3: -pi/2, a3: -0.054, d4:      1.5,   q4:         q4,
+              alpha4:  pi/2, a4:      0, d5:        0,   q5:         q5,
+              alpha5: -pi/2, a5:      0, d6:        0,   q6:         q6,
+              alpha6:     0, a6:      0, d7:    0.303,   q7:          0}
 
 	# Define Modified DH Transformation matrix
         def TF_Matrix(alpha, a, d, q):
-            TF = Matrix([[           cos(q),           -sin(q),          0.,             a],
+            TF = Matrix([[           cos(q),           -sin(q),           0,             a],
                          [sin(q)*cos(alpha), cos(q)*cos(alpha), -sin(alpha), -sin(alpha)*d],
                          [sin(q)*sin(alpha), cos(q)*sin(alpha),  cos(alpha),  cos(alpha)*d],
-                         [               0.,                0.,          0.,            1.]])
+                         [                0,                 0,           0,            1]])
             return TF
 
 	# Create individual transformation matrices
@@ -63,34 +61,26 @@ def handle_calculate_IK(req):
         T6_ee = TF_Matrix(alpha6, a6, d7, q7).subs(dh)
 
         T0_ee = T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_ee
-        print('0', simplify(T0_1))
-        print('1', simplify(T1_2))
-        print('2', simplify(T2_3))
-        print('3', simplify(T3_4))
-        print('4', simplify(T4_5))
-        print('5', simplify(T5_6))
-        print('6', simplify(T6_ee))
-        print('e', simplify(T0_ee))
 
 	# Extract rotation matrices from the transformation matrices
         R0_3 = (T0_1 * T1_2 * T2_3)[:3,:3]
 
         r, p, y = symbols('r p y')
-        R_x = Matrix([[1.,         0.,     0.],
-                      [0.,     cos(r),-sin(r)],
-                      [0.,     sin(r), cos(r)]]) # Roll
-        R_y = Matrix([[  cos(p),  0.,  sin(p)],
-                      [       0.,  1.,       0.],
-                      [ -sin(p),  0.,  cos(p)]]) # pitch
-        R_z = Matrix([[cos(y), -sin(y),   0.],
-                      [sin(y),  cos(y),   0.],
-                      [     0.,       0.,   1.]]) # yaw
+        R_x = Matrix([[1,          0,      0],
+                      [0,     cos(r),-sin(r)],
+                      [0,     sin(r), cos(r)]]) # Roll
+        R_y = Matrix([[  cos(p),  0,  sin(p)],
+                      [       0,  1,       0],
+                      [ -sin(p),  0,  cos(p)]]) # pitch
+        R_z = Matrix([[cos(y), -sin(y),   0],
+                      [sin(y),  cos(y),   0],
+                      [     0,       0,   1]]) # yaw
 
         # Correction needed to account for orientation difference 
         # between definition of griffer link in URDF versus DH convention
-        Ree_rviz_corr = R_z.subs(y, pi) * R_y.subs(p, -pi/2.)
-        R0_ee = R_z * R_y * R_x * Ree_rviz_corr.transpose()
-        print(simplify(R_z * R_y * R_x))
+        Ree_rviz_corr = R_z.subs(y, pi) * R_y.subs(p, -pi/2)
+        R0_rviz_rpy = R_z * R_y * R_x
+        R0_ee = R0_rviz_rpy * Ree_rviz_corr.transpose()
         ###
 
         # Initialize service response
@@ -166,5 +156,4 @@ def IK_server():
     rospy.spin()
 
 if __name__ == "__main__":
-    #IK_server()
-    handle_calculate_IK(None)
+    IK_server()
