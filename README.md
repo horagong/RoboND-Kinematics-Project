@@ -1,5 +1,3 @@
-[![Udacity - Robotics NanoDegree Program](https://s3-us-west-1.amazonaws.com/udacity-robotics/Extra+Images/RoboND_flag.png)](https://www.udacity.com/robotics)
-
 ## Project: Kinematics Pick & Place
 ---
 
@@ -58,7 +56,7 @@ Joint4,5,6 become `spherical wrist` and Joint5 becomes `wrist center` and for co
 ```
 # Create Modified DH parameters
 s = {alpha0:      0, a0:      0, d1:     0.75,  q1:         q1,
-        alpha1: -pi/2., a1:   0.35, d2:        0,  q2:    q2-pi/2,
+        alpha1: -pi/2., a1:   0.35, d2:        0,  q2:   q2-pi/2.,
         alpha2:      0, a2:   1.25, d3:        0,  q3:         q3,
         alpha3: -pi/2., a3: -0.054, d4:      1.5,  q4:         q4,
         alpha4:  pi/2., a4:      0, d5:        0,  q5:         q5,
@@ -83,10 +81,61 @@ TF = Matrix([[           cos(q),           -sin(q),           0,             a],
                     [sin(q)*cos(alpha), cos(q)*cos(alpha), -sin(alpha), -sin(alpha)*d],
                     [sin(q)*sin(alpha), cos(q)*sin(alpha),  cos(alpha),  cos(alpha)*d],
                     [                0,                 0,           0,             1]])
-```
-```
+
+# Individual transformation matrices about each joint.
+T0_1 = Matrix([
+[cos(q1), -sin(q1), 0.0,  0.0],
+[sin(q1),  cos(q1),   0,    0],
+[      0,        0,   1, 0.75],
+[    0.0,      0.0, 0.0,  1.0]]))
+
+T1_2 = Matrix([
+[sin(q2),  cos(q2), 0.0, 0.35],
+[               0,        0,   1,  0.0],
+[         cos(q2), -sin(q2),   0,    0],
+[             0.0,      0.0, 0.0,  1.0]]))
+
+T2_3 = Matrix([
+[cos(q3), -sin(q3), 0.0, 1.25],
+[sin(q3),  cos(q3),   0,    0],
+[      0,        0,   1,  0.0],
+[    0.0,      0.0, 0.0,  1.0]]))
+
+T3_4 = Matrix([
+[ cos(q4), -sin(q4), 0.0, -0.054],
+[       0,        0,   1,    1.5],
+[-sin(q4), -cos(q4),   0,      0],
+[     0.0,      0.0, 0.0,    1.0]]))
+
+T4_5 = Matrix([
+[cos(q5), -sin(q5), 0.0, 0.0],
+[      0,        0,  -1,   0],
+[sin(q5),  cos(q5),   0,   0],
+[    0.0,      0.0, 0.0, 1.0]]))
+
+T5_6 = Matrix([
+[ cos(q6), -sin(q6), 0.0, 0.0],
+[       0,        0,   1, 0.0],
+[-sin(q6), -cos(q6),   0,   0],
+[     0.0,      0.0, 0.0, 1.0]]))
+
+T6_ee = Matrix([
+[  1,   0, 0.0,   0.0],
+[  0,   1,   0,     0],
+[  0,   0,   1, 0.303],
+[0.0, 0.0, 0.0,   1.0]]))
+
 T0_ee = T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_ee
+
+# Generalized homogeneous transform between base_link and gripper_link using only end-effector(gripper) pose, rpy and px, py, pz.
+T0_rviz = Matrix([
+[cos(p)*cos(y), sin(p)*sin(r)*cos(y) - sin(y)*cos(r), sin(p)*cos(r)*cos(y) + sin(r)*sin(y), px], 
+[sin(y)*cos(p), sin(p)*sin(r)*sin(y) + cos(r)*cos(y), sin(p)*sin(y)*cos(r) - sin(r)*cos(y), py], 
+[-sin(p), sin(r)*cos(p), cos(p)*cos(r), pz],
+[0, 0,  0,  1]])
+
 ```
+
 The URDF file is using the different local frame at the gripper. So multiply another transform for it.
 ![alt text][image4]
 ```
@@ -116,6 +165,16 @@ Kr210 has wrist center and we can analytical approach. we kinematically decouple
         * `R0_rviz = R0_ee * Ree_rviz_corr = R0_rviz_rpy`. 
         * So `R0_ee = R0_rviz_rpy * Ree_rviz_corr.transpose()`
     * find theta1,2,3 before WC joint by comparing each term of both sides.
+        * `theta1` = atan2(WC[1], WC[0])
+        * triangle and cosine law
+            * side_a = 1.501 #sqrt(1.5*1.5 + 0.054*0.054)
+            * side_b = sqrt((sqrt(WC[0]**2 + WC[1]**2) - 0.35)**2 + (WC[2] - 0.75)**2)
+            * side_c = 1.25 #a2
+            * `angle_a = acos((side_b**2 + side_c**2 - side_a**2)/(2.*side_b*side_c))`
+            * `angle_b = acos((side_c**2 + side_a**2 - side_b**2)/(2.*side_c*side_a))`
+            * `angle_c = acos((side_a**2 + side_b**2 - side_c**2)/(2.*side_a*side_b))`
+        * `theta2` =  pi/2. - angle_a - atan2(WC[2] - 0.75, sqrt(WC[0]**2 + WC[1]**2) - 0.35)
+        * `theta3` =  pi/2. - (angle_b + 0.036) #0.036 = atan2(abs(a3), d4)
     ![alt text][image7]
 
 2. and then the composition of rotations to orient the end effector. 
@@ -125,9 +184,9 @@ Kr210 has wrist center and we can analytical approach. we kinematically decouple
         [sin(q5)*cos(q6), -sin(q5)*sin(q6), cos(q5)], 
         [-sin(q4)*cos(q5)*cos(q6) - sin(q6)*cos(q4), sin(q4)*sin(q6)*cos(q5) - cos(q4)*cos(q6), sin(q4)*sin(q5)]])
     * By comparing each term of both sides,
-        * theta4 = atan2(R3_6[2,2], -R3_6[0,2])
-        * theta5 = atan2(sqrt(R3_6[0,2]**2 + R3_6[2,2]**2), R3_6[1,2])
-        * theta6 = atan2(-R3_6[1,1], R3_6[1,0])
+        * `theta4` = atan2(R3_6[2,2], -R3_6[0,2])
+        * `theta5` = atan2(sqrt(R3_6[0,2]**2 + R3_6[2,2]**2), R3_6[1,2])
+        * `theta6` = atan2(-R3_6[1,1], R3_6[1,0])
 
 
 ### Project Implementation
