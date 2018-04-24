@@ -178,11 +178,14 @@ Kr210 has wrist center and we can analytical approach. we kinematically decouple
     ![alt text][image7]
 
 2. and then the composition of rotations to orient the end effector. 
-    * `R3_6 = R0_3.transpose() * R0_ee`
-    * R3_6 = Matrix([
+    * Now we can get `R0_3` using `theta1,2,3` and can solve `R3_6` by `R3_6 = R0_3.transpose() * R0_ee`
+    * We can arrange `R3_6` by `R3_6 = R3_4 * R4_5 * R5_6`
+        ``` 
+        R3_6 = Matrix([
         [-sin(q4)*sin(q6) + cos(q4)*cos(q5)*cos(q6), -sin(q4)*cos(q6) - sin(q6)*cos(q4)*cos(q5), -sin(q5)*cos(q4)], 
         [sin(q5)*cos(q6), -sin(q5)*sin(q6), cos(q5)], 
         [-sin(q4)*cos(q5)*cos(q6) - sin(q6)*cos(q4), sin(q4)*sin(q6)*cos(q5) - cos(q4)*cos(q6), sin(q4)*sin(q5)]])
+        ```
     * By comparing each term of both sides,
         * `theta4` = atan2(R3_6[2,2], -R3_6[0,2])
         * `theta5` = atan2(sqrt(R3_6[0,2]**2 + R3_6[2,2]**2), R3_6[1,2])
