@@ -51,7 +51,7 @@ And then we can derive DH parameters. We use DH parameter definition from `Craig
 * `Link offset di` is the distance `from Xi-1 to Xi` along `Zi`.
 * `Joint angle thetai` is the angle `from Xi-1 to Xi`.
 
-Joint4,5,6 become `spherical wrist` and Joint5 becomes `wrist center` and for convenience, we define these `Origin4,5,6 at the same position` and Xg as parallel to X4,5,6. Here Xg gets different to URDF direction. 
+Joint4,5,6 become `spherical wrist` and Joint5 becomes `wrist center(WC)` and for convenience, we define these `Origin4,5,6 at the same position` and Xg as parallel to X4,5,6. Here Xg gets different to URDF direction. 
 ![alt text][image6]
 ```
 # Create Modified DH parameters
@@ -151,7 +151,7 @@ For inverse kinematics, we should use numerical or analyical approach.
     * Three neighboring joint axes intersect at a single point, or
     * Three neighboring joint axes are parallel (which is technically a special case of 1, since parallel lines intersect at infinity)
 
-Kr210 has wrist center and we can analytical approach. we kinematically decouple the position and orientation of the end effector. Instead of solving twelve nonlinear equations simultaneously (one equation for each term in the first three rows of the overall homogeneous transform matrix), it is now possible to independently solve two simpler problems: 
+Kr210 has *wrist center* and we can analytical approach. we kinematically decouple the position and orientation of the end effector. Instead of solving twelve nonlinear equations simultaneously (one equation for each term in the first three rows of the overall homogeneous transform matrix), it is now possible to independently solve two simpler problems: 
 1. first, the Cartesian coordinates of the wrist center, 
     * If we choose Z5 parallel to ZEE and pointing from the WC to the EE, then this displacement is a simple translation along ZEE. The magnitude of this displacement, let’s call it d,
     * `0r_wc = 0r_rviz - 0r_rviz/wc`
@@ -161,10 +161,18 @@ Kr210 has wrist center and we can analytical approach. we kinematically decouple
     * `0r_wc = 0r_ee - d * R0_ee * ee_[0,0,1].T`
         * `= 0r_ee - d * R0_ee[:,2]`
         * `0r_ee` is the position of EE expressed in the base frame is given by EE pose.position.
-        * `R0_rviz_rpy` is the relative orientaion of EE from base frame and given by EE pose.orientation. R0_rviz_rpy = R_z * R_y * R_x
+        * `R0_rviz_rpy` is the relative orientaion of EE from base frame and given by EE pose.orientation. 
+            * `R0_rviz_rpy = R_z * R_y * R_x`
+            ```
+            R_z * R_y * R_z = Matrix([
+            [cos(p)*cos(y), sin(p)*sin(r)*cos(y) - sin(y)*cos(r), sin(p)*cos(r)*cos(y) + sin(r)*sin(y)], 
+            [sin(y)*cos(p), sin(p)*sin(r)*sin(y) + cos(r)*cos(y), sin(p)*sin(y)*cos(r) - sin(r)*cos(y)], 
+            [-sin(p), sin(r)*cos(p), cos(p)*cos(r)]])
+            ```
+
         * `R0_rviz = R0_ee * Ree_rviz_corr = R0_rviz_rpy`. 
         * So `R0_ee = R0_rviz_rpy * Ree_rviz_corr.transpose()`
-    * find theta1,2,3 before WC joint by comparing each term of both sides.
+    * find theta1,2,3 before WC joint from the following picture.
         * `theta1` = atan2(WC[1], WC[0])
         * triangle and cosine law
             * side_a = 1.501 #sqrt(1.5*1.5 + 0.054*0.054)
