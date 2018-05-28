@@ -162,9 +162,8 @@ Kr210 has *wrist center* and we can analytical approach. we kinematically decoup
         * `= 0r_ee - d * R0_ee[:,2]`
         * `0r_ee` is the position of EE expressed in the base frame is given by EE pose.position.
         * `R0_rviz_rpy` is the relative orientaion of EE from base frame and given by EE pose.orientation. 
-            * `R0_rviz_rpy = R_z * R_y * R_x`
             ```
-            R_z * R_y * R_z = Matrix([
+            R0_rviz_rpy = R_z * R_y * R_z = Matrix([
             [cos(p)*cos(y), sin(p)*sin(r)*cos(y) - sin(y)*cos(r), sin(p)*cos(r)*cos(y) + sin(r)*sin(y)], 
             [sin(y)*cos(p), sin(p)*sin(r)*sin(y) + cos(r)*cos(y), sin(p)*sin(y)*cos(r) - sin(r)*cos(y)], 
             [-sin(p), sin(r)*cos(p), cos(p)*cos(r)]])
